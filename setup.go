@@ -6,7 +6,7 @@ import (
 	"github.com/coredns/coredns/plugin"
 )
 
-func init() { plugin.RegisterPlugin("iface", setup) }
+func init() { plugin.Register("iface", setup) }
 
 func setup(c *caddy.Controller) error {
 	c.Next() // 'demo'
@@ -14,8 +14,14 @@ func setup(c *caddy.Controller) error {
 		return plugin.Error("iface", c.ArgErr())
 	}
 
+
+  iface := new(IFace)
+
+	// Add the Plugin to CoreDNS, so Servers can use it in their plugin chain.
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		return IFace{}
+		iface.Next = next
+
+		return iface
 	})
 
 	return nil
