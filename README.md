@@ -18,8 +18,11 @@ docker run -it --rm -v $PWD:/v -w /v golang:1.16 sh -c 'make gen && make'
 ## Syntax
 
 ~~~ txt
-iface
+iface [TLD]
 ~~~
+
+Defaults:
+- TLD: `iface` - The domain to lookup interfaces as a subdomain of
 
 ## Also See
 

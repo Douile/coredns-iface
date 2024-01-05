@@ -13,6 +13,7 @@ import (
 )
 
 type IFace struct {
+	TLD  string
 	Next plugin.Handler
 }
 
@@ -21,11 +22,11 @@ func (p IFace) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 	state := request.Request{W: w, Req: r}
 	qname := state.Name()
 
-	if !strings.HasSuffix(qname, ".iface.") || (state.QType() != dns.TypeA && state.QType() != dns.TypeAAAA || state.QType() != dns.TypeTXT) {
+	if !strings.HasSuffix(qname, p.TLD) || (state.QType() != dns.TypeA && state.QType() != dns.TypeAAAA || state.QType() != dns.TypeTXT) {
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
 	}
 
-	ifaceName := strings.TrimSuffix(qname, ".iface.")
+	ifaceName := strings.TrimSuffix(qname, p.TLD)
 
 	iface, err := net.InterfaceByName(ifaceName)
 
