@@ -45,24 +45,19 @@ func (p IFace) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 		ipPart, maskPart, _ := strings.Cut(addr.String(), "/")
 		log.Infof("Replying with address: %s %s", ipPart, maskPart)
 		ip := net.ParseIP(ipPart)
-		if ip.To4() != nil {
-			if state.QType() == dns.TypeA {
-				rr := new(dns.A)
-				rr.Hdr = dns.RR_Header{Name: qname, Rrtype: dns.TypeA, Class: dns.ClassINET}
-				rr.A = ip.To4()
+		if ip.To4() != nil && state.QType() == dns.TypeA {
+			rr := new(dns.A)
+			rr.Hdr = dns.RR_Header{Name: qname, Rrtype: dns.TypeA, Class: dns.ClassINET}
+			rr.A = ip.To4()
 
-				answers = append(answers, rr)
-			}
-		} else if ip.To16() != nil {
-			if state.QType() == dns.TypeAAAA {
-				rr := new(dns.AAAA)
-				rr.Hdr = dns.RR_Header{Name: qname, Rrtype: dns.TypeAAAA, Class: dns.ClassINET}
-				rr.AAAA = ip.To16()
+			answers = append(answers, rr)
+		} else if ip.To4() == nil && ip.To16() != nil && state.QType() == dns.TypeAAAA {
+			rr := new(dns.AAAA)
+			rr.Hdr = dns.RR_Header{Name: qname, Rrtype: dns.TypeAAAA, Class: dns.ClassINET}
+			rr.AAAA = ip.To16()
 
-				answers = append(answers, rr)
-			}
-		}
-		if state.QType() == dns.TypeTXT {
+			answers = append(answers, rr)
+		} else if state.QType() == dns.TypeTXT {
 			tt := new(dns.TXT)
 			tt.Hdr = dns.RR_Header{Name: qname, Rrtype: dns.TypeTXT, Class: dns.ClassINET}
 			tt.Txt = append(tt.Txt, fmt.Sprintf("%s://%s", addr.Network(), addr.String()))
